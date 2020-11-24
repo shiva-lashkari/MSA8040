@@ -20,11 +20,15 @@ attrs = {'class': 'list-group-item article'}
 posts = soup.find_all('li', attrs = attrs)
 
 counter = 1
-while (counter <= 1500):
+while (counter <= 1300):
 
     for post in posts:
         head = post.find('h3')
         title = head.find('a', class_='dashboard-article-link').text
+        try:
+            postUrl = 'https://seekingalpha.com' + head.find('a').attrs['href']
+        except:
+            postUrl = 'None'
         try:
             desc = post.find('div', class_ = 'article-desc')
             author = desc.find('a', recursive = False).text
@@ -46,15 +50,15 @@ while (counter <= 1500):
             dateTemp = re.sub(r',|\.| +|\n', ' ', dateTemp).lstrip()
             dateTemp = re.sub(' PM','PM',dateTemp).rstrip()
             dateTemp = re.sub(' AM','AM',dateTemp)
-            if (dateTemp.count(' ') <7):
+            try:
                 date = datetime.strptime(str(datetime.now().year) + ' ' + dateTemp, '%Y %a %b %d %I:%M%p')
-            else:
-                date = datetime.strptime(dateTemp, '%a %b %d %Y %I:%M%p')
+            except:
+                date = datetime.strptime(dateTemp, '%b %d %Y %I:%M%p')
             # date = re.match(r'(\S)$',date)
         except:
             date = 'None'
 
-        post_line=[title,group,groupTitle,date,author]
+        post_line=[title,group,groupTitle,date,author,postUrl]
 
         with open('rawData.csv','a') as f:
                 try:
@@ -62,15 +66,20 @@ while (counter <= 1500):
                     writer.writerow(post_line)
                 except UnicodeEncodeError:
                     num_uncoded +=1
-        counter += 1
+    counter += 1
 
-    next_button = soup.find('li', class_='next')
-    if next_button:
-        next_page_link = next_button.find('a').attrs['href']
-        next_page = 'https://seekingalpha.com' + next_page_link
-        time.sleep(2)
-        page = requests.get(next_page, headers = headers)
-        soup = BeautifulSoup(page.text, 'html5lib')
-        posts = soup.find_all('li', attrs = attrs)
-    else:
-        break
+    # next_button = soup.find('li', class_='next')
+    # if next_button:
+    #     next_page_link = next_button.find('a').attrs['href']
+    #     next_page = 'https://seekingalpha.com' + next_page_link
+    #     time.sleep(2)
+    #     page = requests.get(next_page, headers = headers)
+    #     soup = BeautifulSoup(page.text, 'html5lib')
+    #     posts = soup.find_all('li', attrs = attrs)
+    # else:
+    #     break
+    next_page = 'https://seekingalpha.com/earnings/earnings-call-transcripts/' + str(counter)
+    time.sleep(2)
+    page = requests.get(next_page, headers = headers)
+    soup = BeautifulSoup(page.text, 'html5lib')
+    posts = soup.find_all('li', attrs = attrs)
