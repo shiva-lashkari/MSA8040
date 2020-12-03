@@ -14,11 +14,12 @@ from selenium import webdriver
 browser = webdriver.Chrome(executable_path = '/home/shiva/myCodes/finalDM/chromedriver')
 headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
 
+timeout = 20
 failedURLs = []
 with open('rawData.csv', 'r') as file:
     reader = csv.reader(file)
     for row in reader:
-        # timeout_start = time.time()
+        timeout_start = time.time()
         participants = []
         # while(len(participants) == 0):
         conference_url = (row[-1])
@@ -47,7 +48,7 @@ with open('rawData.csv', 'r') as file:
                 elif paragraph.getText() == 'Corporate Participants':
                     participants = paragraph.find_next_sibling('p').getText()
                     participant = paragraph.find_next_sibling('p')
-                    while 'Operator' not in participants and 'Conference Call Participants' not in participants:
+                    while 'Operator' not in participants and 'Conference Call Participants' not in participants and (time.time() < timeout_start + timeout):
                         if participant.find_next_sibling('p') is not None:
                             participants += ', ' + participant.find_next_sibling('p').getText()
                             participant = participant.find_next_sibling('p')
@@ -56,7 +57,7 @@ with open('rawData.csv', 'r') as file:
                 elif paragraph.string == 'Executives':
                     participants = paragraph.find_next_sibling('p').getText()
                     participant = paragraph.find_next_sibling('p')
-                    while 'Operator' not in participants and 'Conference Call Participants' not in participants:
+                    while 'Operator' not in participants and 'Conference Call Participants' not in participants and (time.time() < timeout_start + timeout):
                         if participant.find_next_sibling('p') is not None:
                             participants += ', ' + participant.find_next_sibling('p').getText()
                             participant = participant.find_next_sibling('p')
@@ -65,7 +66,7 @@ with open('rawData.csv', 'r') as file:
                 elif paragraph.string == 'Conference Call Participants':
                     callParticipants = paragraph.find_next_sibling('p').getText()
                     callParticipant = paragraph.find_next_sibling('p')
-                    while 'Operator' not in callParticipants and 'Question-and-Answer Session' not in callParticipants and time.time():
+                    while 'Operator' not in callParticipants and 'Question-and-Answer Session' not in callParticipants and (time.time() < timeout_start + timeout):
                         try:
                             callParticipants += ', ' + callParticipant.find_next_sibling('p').getText()
                         except:
