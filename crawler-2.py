@@ -80,7 +80,8 @@ with open('rawData.csv', 'r') as file:
                 callParticipants = callParticipants.replace(', Operator','')
             elif 'Conference Call Participants' in participants:
                 participants = participants.replace(', Conference Call Participants','')
-        
+            print(2)
+            
         print(conference_url,participants)
         
         if(len(participants) == 0):
