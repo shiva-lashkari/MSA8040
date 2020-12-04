@@ -2,19 +2,17 @@
 -- -----------------------------------------------------
 -- Create Database CECS
 -- -----------------------------------------------------
-drop database if exists CECS;
+drop database IF EXISTS CECS;
 create database CECS;
 use CECS;
 
-BEGIN;
 -- -----------------------------------------------------
 -- Drop tables if they are exist in CECS
 -- -----------------------------------------------------
 drop table if exists COMPANY;
-drop table if exists CONFERENCE;
+drop table if exists CONFERENCE_CALL;
 drop table if exists PARTICIPANT;
-drop table if exists CONFERENCE_PARTICIPANT;
-drop table if exists PARTICIPANT_TITLE;
+drop table if exists CONCALL_PA;
 
 
 -- -----------------------------------------------------
@@ -27,7 +25,7 @@ CO_NAME varchar(255) CHARACTER SET latin1 not null
 );
 
 -- -----------------------------------------------------
--- Create Table CECS.CONFERENCE
+-- Create Table CECS.CONFERENCE_CALL
 -- -----------------------------------------------------
 create table CONFERENCE_CALL (
 CONCALL_ID    int not null unique primary key,
@@ -47,12 +45,13 @@ constraint FK_CO_CON foreign key (CO_ID) references COMPANY(CO_ID)
 create table PARTICIPANT (
 PA_ID    int not null auto_increment primary key,
 PA_NAME  varchar(50) not null,
-PA_ORG   varchar(100) default null
+PA_ORG   varchar(100) default null,
+PA_TYPE	 varchar(100) not null unique
 );
 /* PA_ORG will be NULL for company particioants and will have the Organization Name for Conference Call Participations other than company members.*/
 
 -- -----------------------------------------------------
--- Create Table CECS.CONFERENCE_PARTICIPANT
+-- Create Table CECS.CONCALL_PA
 -- -----------------------------------------------------
 create table CONCALL_PA (
 CONCALL_ID  int not null,
@@ -65,11 +64,3 @@ constraint FK_CCP_CONCALL foreign key (CONCALL_ID) references CONFERENCE_CALL(CO
 -- -----------------------------------------------------
 -- Create Table CECS.PARTICIPANT_TITLE
 -- -----------------------------------------------------
-create table PARTICIPANT_TITLE (
-PAT_ID    int not null auto_increment primary key,
-PA_ID     int not null,
-PA_TYPE   varchar(50) not null unique,
-constraint FK_PAT_PA foreign key (PA_ID) references PARTICIPANT(PA_ID)
-);
-
-COMMIT;
