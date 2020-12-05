@@ -18,10 +18,10 @@ drop table if exists CONCALL_PA;
 -- -----------------------------------------------------
 -- Create Table CECS.COMPANY
 -- -----------------------------------------------------
-create table COMPANY (
-CO_ID int not null auto_increment primary key,
-TICKER char(10) not null unique,
-CO_NAME varchar(255) CHARACTER SET latin1 not null
+create table company (
+company_id int not null auto_increment primary key,
+company_ticker char(10) not null unique,
+company_name varchar(255) CHARACTER SET latin1 not null
 );
 
 -- -----------------------------------------------------
