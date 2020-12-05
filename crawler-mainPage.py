@@ -31,10 +31,10 @@ while (counter <= 1300):
             postUrl = 'None'
         try:
             desc = post.find('div', class_ = 'article-desc')
-            author = desc.find('a', recursive = False).text
+            type = desc.find('a', recursive = False).text
         except:
             desc = 'None'
-            author = 'None'
+            type = 'None'
         try:
             symbol = post.find('span', class_='article-symbols')
             groupTitleTag = symbol.find('a')
@@ -58,9 +58,9 @@ while (counter <= 1300):
         except:
             date = 'None'
 
-        post_line=[title,group,groupTitle,date,author,postUrl]
+        post_line=[title,date,group,groupTitle,date,type,postUrl]
 
-        with open('rawData.csv','a') as f:
+        with open('rawData-main.csv','a') as f:
                 try:
                     writer=csv.writer(f)
                     writer.writerow(post_line)
@@ -68,16 +68,6 @@ while (counter <= 1300):
                     num_uncoded +=1
     counter += 1
 
-    # next_button = soup.find('li', class_='next')
-    # if next_button:
-    #     next_page_link = next_button.find('a').attrs['href']
-    #     next_page = 'https://seekingalpha.com' + next_page_link
-    #     time.sleep(2)
-    #     page = requests.get(next_page, headers = headers)
-    #     soup = BeautifulSoup(page.text, 'html5lib')
-    #     posts = soup.find_all('li', attrs = attrs)
-    # else:
-    #     break
     next_page = 'https://seekingalpha.com/earnings/earnings-call-transcripts/' + str(counter)
     time.sleep(2)
     page = requests.get(next_page, headers = headers)
