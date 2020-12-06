@@ -31,10 +31,10 @@ while (counter <= 1300):
             postUrl = 'None'
         try:
             desc = post.find('div', class_ = 'article-desc')
-            type = desc.find('a', recursive = False).text
+            author = desc.find('a', recursive = False).text
         except:
             desc = 'None'
-            type = 'None'
+            author = 'None'
         try:
             symbol = post.find('span', class_='article-symbols')
             groupTitleTag = symbol.find('a')
@@ -58,9 +58,9 @@ while (counter <= 1300):
         except:
             date = 'None'
 
-        post_line=[title,date,group,groupTitle,date,type,postUrl]
+        post_line=[title,group,groupTitle,date,author,postUrl]
 
-        with open('rawData-main.csv','a') as f:
+        with open('rawData.csv','a') as f:
                 try:
                     writer=csv.writer(f)
                     writer.writerow(post_line)
