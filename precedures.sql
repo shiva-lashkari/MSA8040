@@ -1,2 +1,2 @@
-INSERT INTO `COMPANY` (`company_ticker`, `company_name`) SELECT DISTINCT `company_ticker`, `company_ticker` FROM `rawMainData`
-INSERT INTO `conference_info` (`conference_id`, `company_id`, `conference_title`, `conference_date`, `conference_time`) SELECT `conference_id`, CO.`company_id` ,`conference_Title`, DATE(`conference_date`), TIME(`conference_date`) FROM rawMainData INNER JOIN company_info as CO using(company_ticker)
+INSERT INTO `company` (`company_ticker`, `company_name`) SELECT DISTINCT `company_ticker`, `company_ticker` FROM `rawMainData`
+INSERT INTO `conference` (`conference_id`, `company_id`, `conference_title`, `conference_date`, `conference_time`) SELECT `conference_id`, CO.`company_id` ,`conference_Title`, DATE(`conference_date`), TIME(`conference_date`) FROM rawMainData INNER JOIN company as CO using(company_ticker)

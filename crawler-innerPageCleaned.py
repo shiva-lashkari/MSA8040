@@ -169,7 +169,8 @@ with open('rawData.csv', 'r') as file:
     
         print(conference_url, comapnyParticipants)
 
-        participant_line=[conference_id,conference_url,comapnyParticipants, corporateParticipants, executiveParticipants, callParticipants, operator, QA, Presentation]
+        participant_line=[conference_id,conference_url,comapnyParticipants, corporateParticipants, executiveParticipants, \
+            callParticipants, operator, QA, Presentation]
         
 
         with open('rawData-result.csv','a', newline='') as f:
