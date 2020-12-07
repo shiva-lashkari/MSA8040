@@ -24,7 +24,7 @@ def readType(conference_id, conference_url, paragraph,comapnyParticipants, corpo
     catParticipentTag = paragraph.find_next_sibling('p')
     catParticipents = catParticipentTag.getText()
     catParticipentTag = catParticipentTag.find_next_sibling('p')
-    with open('rawData-speech.csv','a', newline='') as f:
+    with open('rawData-speechTest.csv','a', newline='') as f:
         while catParticipentTag is not None and 'Conference Call Participants' not in catParticipents and \
             'Corporate Participants' not in catParticipents and 'Executives' not in catParticipents and \
             'Question-and-Answer' not in catParticipentTag.getText() and (time.time() < timeout_start + timeout):
@@ -127,7 +127,8 @@ with open('rawData.csv', 'r') as file:
         timeout_start = time.time()
         participants = []
         # while(len(participants) == 0):
-        conference_url = (row[-1])
+        # conference_url = (row[-1])
+        conference_url = ("https://seekingalpha.com/article/4392932-domo-inc-domo-ceo-joshua-james-on-q3-2021-results-earnings-call-transcript")
         conference_id = (row[0])
         browser.get(conference_url)
         html = browser.page_source
@@ -189,7 +190,7 @@ with open('rawData.csv', 'r') as file:
             callParticipants, operator, QA, Presentation]
         
 
-        with open('rawData-result.csv','a', newline='') as f:
+        with open('rawData-result-Test.csv','a', newline='') as f:
             try:
                 writer=csv.writer(f)
                 writer.writerow(participant_line)
@@ -210,4 +211,4 @@ with open('rawData.csv', 'r') as file:
                 except UnicodeEncodeError:
                     num_uncoded +=1
             break
-
+        break
