@@ -19,12 +19,13 @@ timeout = 20
 failedURLs = []
 
 def searchResult(catParticipentTag, catParticipents):
+    search_result = ""
     if catParticipentTag is not None:
         try:
             search_result = re.search(r'\b' + catParticipentTag.getText() + '\W', catParticipents)
         except:
             search_result = ""
-        if search_result is None:
+        if search_result is None or search_result == "":
             if(comapnyParticipants != []):
                 try:
                     search_result = re.search(r'\b' + catParticipentTag.getText() + '\W', comapnyParticipants)
@@ -52,26 +53,25 @@ def searchResult(catParticipentTag, catParticipents):
 def readType(conference_id, conference_url, paragraph,comapnyParticipants, corporateParticipants):
     catParticipents = []
     catParticipentTag = paragraph.find_next_sibling('p')
-    catParticipents = catParticipentTag.getText()
-    catParticipentTag = catParticipentTag.find_next_sibling('p')
+    if catParticipentTag.getText() != 'Operator':
+        catParticipents = catParticipentTag.getText()
+        catParticipentTag = catParticipentTag.find_next_sibling('p')
+
     with open('rawData-speechTest.csv','a', newline='') as f:
         while catParticipentTag is not None and 'Conference Call Participants' not in catParticipents and \
             'Corporate Participants' not in catParticipents and 'Executives' not in catParticipents and \
-            'Question-and-Answer' not in catParticipentTag.getText() and 'Done' not in catParticipentTag.getText() and \
-            (time.time() < timeout_start + timeout):
+            'Question-and-Answer' not in catParticipentTag.getText() and (time.time() < timeout_start + timeout):
 
             search_result = searchResult(catParticipentTag,catParticipents)
 
             if catParticipentTag.getText().replace(" ","") != search_result and \
                 catParticipentTag.getText() != 'Operator':
-                
                 catParticipents += ' / ' + catParticipentTag.getText()
                 catParticipentTag = catParticipentTag.find_next_sibling('p')
-                
-                
+
             elif catParticipentTag is not None and (catParticipentTag.getText().replace(" ","") == search_result or \
                 catParticipentTag.getText() == 'Operator' or catParticipentTag.getText() == 'Presentation'):
-
+                
                 speechPerson = catParticipentTag.getText()
                 speech = ""
                 catParticipentTag = catParticipentTag.find_next_sibling('p')
@@ -117,7 +117,7 @@ with open('rawData-test.csv', 'r') as file:
         participants = []
         # while(len(participants) == 0):
         conference_url = (row[-1])
-        # conference_url = ("https://seekingalpha.com/article/4393377-lightinthebox-holding-co-ltd-s-litb-ceo-jian-on-q3-2020-results-earnings-call-transcript")
+        # conference_url = ("https://seekingalpha.com/article/4392903-idt-corporations-idt-ceo-shmuel-jonas-on-q1-2021-results-earnings-call-transcript")
         conference_id = (row[0])
         browser.get(conference_url)
         html = browser.page_source
@@ -137,9 +137,9 @@ with open('rawData-test.csv', 'r') as file:
             #Change QA boolean to True if page contain 'Question-and-Answer Session'
             if 'Question-and-Answer Session' in paragraph.getText():
                 QA = 1
-            # if 'Presentation' in paragraph.getText():
-            #     Presentation = 1
-            #Run the readType base on the tile 
+            if 'Presentation' in paragraph.getText():
+                Presentation = 1
+            # Run the readType base on the title 
             # Then we can seperate Company participents and Corporate participenta ans Call participetns and Executives
             if paragraph.getText() == 'Company Participants' or paragraph.getText() == 'Company Participants ':
                 comapnyParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants)
@@ -159,21 +159,6 @@ with open('rawData-test.csv', 'r') as file:
                 if paragraph.find_next_sibling('p') is not None:
                     operator = paragraph.find_next_sibling('p').getText()
                     
-
-            # if 'Operator' in comapnyParticipants:
-            #     comapnyParticipants = comapnyParticipants.replace(' / Operator','')
-            # elif 'Operator' in corporateParticipants:
-            #     corporateParticipants = corporateParticipants.replace(' / Operator','')
-            # elif 'Operator' in executiveParticipants:
-            #     executiveParticipants = executiveParticipants.replace(' / Operator','')
-            # elif 'Operator' in callParticipants:
-            #     callParticipants = callParticipants.replace(', Operator','')
-            # elif 'Conference Call Participants' in comapnyParticipants:
-            #     comapnyParticipants = comapnyParticipants.replace(' / Conference Call Participants','')
-            # elif 'Conference Call Participants' in corporateParticipants:
-            #     corporateParticipants = corporateParticipants.replace(' / Conference Call Participants','')
-            # elif 'Conference Call Participants' in executiveParticipants:
-            #     executiveParticipants = executiveParticipants.replace(' / Conference Call Participants','')
     
         print(conference_url, comapnyParticipants)
 
