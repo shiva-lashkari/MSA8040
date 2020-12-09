@@ -128,7 +128,7 @@ with open('rawData.csv', 'r') as file:
         participants = []
         # while(len(participants) == 0):
         # conference_url = (row[-1])
-        conference_url = ("https://seekingalpha.com/article/4392932-domo-inc-domo-ceo-joshua-james-on-q3-2021-results-earnings-call-transcript")
+        conference_url = ("https://seekingalpha.com/article/4392859-union-pacific-corporation-unp-ceo-lance-fritz-presents-credit-suisse-8th-annual-virtual")
         conference_id = (row[0])
         browser.get(conference_url)
         html = browser.page_source
@@ -152,7 +152,8 @@ with open('rawData.csv', 'r') as file:
                 Presentation = 1
             #Run the readType base on the tile 
             # Then we can seperate Company participents and Corporate participenta ans Call participetns and Executives
-            if paragraph.getText() == 'Company Participants':
+            if paragraph.getText() == 'Company Participants' or paragraph.getText() == 'Company Participants ':
+                print("test")
                 comapnyParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants)
                 
             elif paragraph.getText() == 'Corporate Participants':

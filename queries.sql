@@ -1,25 +1,18 @@
 -- Test Queries
--- 1. How many conference calls happen on the Q1, 2020
+-- a. How many conference calls in your database occurred in 2020? Answer: 9228
 
-SELECT count(*) FROM `conference` WHERE conference_date BETWEEN '2019-01-01' AND '2020-03-31'  
+SELECT count(*) FROM `conference` WHERE conference_date like '2020%'
 
--- 2. Given a ticker name, e.g., FUV, how many conference calls are in 2020
+-- b. Print their ticker name and date
 
+SELECT conference_date, Co.company_ticker FROM `conference` INNER JOIN  company as Co USING(company_id)  WHERE conference_date like '2020%'
 
-SELECT count(*) FROM `conference` WHERE company_id = (SELECT company_id FROM company WHERE company_ticker = 'FUV') AND conference_date LIKE '2020%'
+-- c. Among those participants, how many are company participants and how many are conference call participants? 
 
--- 3. how many participants in the conference call 
+SELECT pa_conferer_type, COUNT(*) FROM participant GROUP BY pa_conferer_type
 
-SELECT count(*) FROM `participant` where participant_id IN (SELECT participant_id FROM `conference_participant` WHERE conference_id = (SELECT conference_id FROM `conference` WHERE company_id = (SELECT company_id FROM company WHERE company_ticker = 'FUV') AND conference_date = '2020-11-16'))
+-- Can you print his/her speech, given the name of this participants, along with the ticker name and date
 
--- and who are them?
-
-SELECT * FROM `participant` where participant_id IN (SELECT participant_id FROM `conference_participant` WHERE conference_id = (SELECT conference_id FROM `conference` WHERE company_id = (SELECT company_id FROM company WHERE company_ticker = 'FUV') AND conference_date = '2020-11-16'))
-
--- And further display their speech, given the name of a participents
-
-SELECT * FROM `speech` where participant_id IN (SELECT participant_id FROM `participant` 
-    where participant_id IN (SELECT participant_id FROM `conference_participant` WHERE conference_id = (SELECT conference_id FROM `conference` 
-    WHERE company_id = (SELECT company_id FROM company WHERE company_ticker = 'FUV') AND conference_date = '2020-11-16'))) 
-    AND conference_id = (SELECT conference_id FROM `conference` WHERE company_id = (SELECT company_id FROM company WHERE company_ticker = 'FUV') 
-    AND conference_date = '2020-11-16')
+SELECT pa_name, textual_info FROM speech INNER JOIN `participant` using(participant_id ) 
+WHERE pa_name = 'Kevin Miller' AND conference_id IN (SELECT conference_id FROM conference 
+where company_id = (SELECT company_id FROM company where company_ticker = 'MNR') AND conference_date = '2020-11-24')
