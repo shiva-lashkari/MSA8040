@@ -12,7 +12,6 @@ use CECS;
 drop table if exists company;
 drop table if exists conference;
 drop table if exists participant;
-drop table if exists conference_participant;
 drop table if exists speech;
 
 
