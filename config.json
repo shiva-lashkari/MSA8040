@@ -1,0 +1,8 @@
+{
+    "mysql":{
+        "host":"127.0.0.1",
+        "user":"shiva",
+        "passwd":"AvishL#21486",
+        "db":"CECS"
+    }
+}

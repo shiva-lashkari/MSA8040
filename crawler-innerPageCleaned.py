@@ -7,17 +7,18 @@ import csv
 import time
 from datetime import date, timedelta, datetime
 from selenium import webdriver
-
+import json
+import MySQLdb
 
 browser = webdriver.Chrome(executable_path = '/home/shiva/myCodes/finalDM/chromedriver')
 headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
 
-counter = 1
+
 timeout = 20
 failedURLs = []
 
 #This function compare paragraph text with the name of the participents to find their speech
-def searchResult(catParticipentTag, catParticipents):
+def searchResult(catParticipentTag, catParticipents, comapnyParticipants, corporateParticipants):
     search_result = ""
     if catParticipentTag is not None:
         try:
@@ -50,57 +51,64 @@ def searchResult(catParticipentTag, catParticipents):
 
 #This function read each paragraph : 1- Find the participents base on the argomans and seperate them
 #Also, find the speech for each person
-def readType(conference_id, conference_url, paragraph,comapnyParticipants, corporateParticipants):
+def readType(conference_id, conference_url, paragraph,comapnyParticipants, corporateParticipants, timeout_start):
     catParticipents = []
     catParticipentTag = paragraph.find_next_sibling('p')
     if catParticipentTag.getText() != 'Operator':
         catParticipents = catParticipentTag.getText()
         catParticipentTag = catParticipentTag.find_next_sibling('p')
 
-    with open('rawData-speechTest.csv','a', newline='') as f:
-        while catParticipentTag is not None and 'Conference Call Participants' not in catParticipents and \
-            'Corporate Participants' not in catParticipents and 'Executives' not in catParticipents and \
-            'Question-and-Answer' not in catParticipentTag.getText() and (time.time() < timeout_start + timeout):
+    # with open('rawData-speechTest.csv','a', newline='') as f:
+    while catParticipentTag is not None and 'Conference Call Participants' not in catParticipents and \
+        'Corporate Participants' not in catParticipents and 'Executives' not in catParticipents and \
+        'Question-and-Answer' not in catParticipentTag.getText() and (time.time() < timeout_start + timeout):
 
-            #We are Checking the content of the paragraph with the participents name
-            search_result = searchResult(catParticipentTag,catParticipents)
+        #We are Checking the content of the paragraph with the participents name
+        search_result = searchResult(catParticipentTag, catParticipents, comapnyParticipants, corporateParticipants)
 
-            #if paragraph text not equal to participents name/operator, it means this paragraph is participent and we add it to participent list
-            if catParticipentTag.getText().replace(" ","") != search_result and \
-                catParticipentTag.getText() != 'Operator':
-                catParticipents += ' / ' + catParticipentTag.getText()
-                catParticipentTag = catParticipentTag.find_next_sibling('p')
+        #if paragraph text not equal to participents name/operator, it means this paragraph is participent and we add it to participent list
+        if catParticipentTag.getText().replace(" ","") != search_result and \
+            catParticipentTag.getText() != 'Operator':
+            catParticipents += ' / ' + catParticipentTag.getText()
+            catParticipentTag = catParticipentTag.find_next_sibling('p')
+        
+        #if paragraph text be equal to participents name/operator, it means next paragraph is contain the speech of this paragraphs participent
+        #  and we add it to speechs
+        elif catParticipentTag is not None and (catParticipentTag.getText().replace(" ","") == search_result or \
+            catParticipentTag.getText() == 'Operator' or catParticipentTag.getText() == 'Presentation'):
             
-            #if paragraph text be equal to participents name/operator, it means next paragraph is contain the speech of this paragraphs participent
-            #  and we add it to speechs
-            elif catParticipentTag is not None and (catParticipentTag.getText().replace(" ","") == search_result or \
-                catParticipentTag.getText() == 'Operator' or catParticipentTag.getText() == 'Presentation'):
-                
-                speechPerson = catParticipentTag.getText()
-                speech = ""
-                catParticipentTag = catParticipentTag.find_next_sibling('p')
-                speech = catParticipentTag.getText()
-                catParticipentTag = catParticipentTag.find_next_sibling('p')
+            speechPerson = catParticipentTag.getText()
+            speech = ""
+            catParticipentTag = catParticipentTag.find_next_sibling('p')
+            speech = catParticipentTag.getText()
+            catParticipentTag = catParticipentTag.find_next_sibling('p')
 
-                # We stop it if the paragraph be equal to Question-and-Answer or Operator because in most of the cases the operator has speech at the end of the 
-                # conferance, we caugh this speech in line #161 then we can stop it in this point
-                while catParticipentTag is not None and catParticipentTag.getText().replace(" ","") != search_result \
-                    and 'Question-and-Answer' not in catParticipentTag.getText() and 'Operator' not in catParticipentTag:
+            # We stop it if the paragraph be equal to Question-and-Answer or Operator because in most of the cases the operator has speech at the end of the 
+            # conferance, we caugh this speech in line #161 then we can stop it in this point
+            while catParticipentTag is not None and catParticipentTag.getText().replace(" ","") != search_result \
+                and 'Question-and-Answer' not in catParticipentTag.getText() and 'Operator' not in catParticipentTag:
 
-                    if catParticipentTag.getText().replace(" ","") != searchResult(catParticipentTag,catParticipents):
-                        speech += ', ' + catParticipentTag.getText()
-                        catParticipentTag = catParticipentTag.find_next_sibling('p')
-                        search_result = searchResult(catParticipentTag,catParticipents)
-                    else:
-                        search_result = searchResult(catParticipentTag,catParticipents)
-                
-                speech_line=[conference_id,conference_url, speechPerson, speech]
-                
-                try:
-                    writer=csv.writer(f)
-                    writer.writerow(speech_line)
-                except UnicodeEncodeError:
-                    num_uncoded +=1
+                if catParticipentTag.getText().replace(" ","") != searchResult(catParticipentTag, catParticipents, comapnyParticipants, corporateParticipants):
+                    speech += ', ' + catParticipentTag.getText()
+                    catParticipentTag = catParticipentTag.find_next_sibling('p')
+                    search_result = searchResult(catParticipentTag, catParticipents, comapnyParticipants, corporateParticipants)
+                else:
+                    search_result = searchResult(catParticipentTag, catParticipents, comapnyParticipants, corporateParticipants)
+            
+            # speech_line=[conference_id,conference_url, speechPerson, speech]
+            
+            # try:
+            #     writer=csv.writer(f)
+            #     writer.writerow(speech_line)
+            # except UnicodeEncodeError:
+            #     num_uncoded +=1
+
+            cur = db.cursor()
+            sql = 'INSERT INTO rawSpeechData2 (conference_id, conference_url, pa_name, textual_info) VALUES (%s, %s, %s, %s)'
+
+            val = ((conference_id, conference_url, speechPerson, speech))
+            cur.execute(sql,val)
+            db.commit();
         else:
             catParticipents += ' / ' + 'Operator'
     #We need to delete the title paragraphs from our participents list
@@ -113,13 +121,18 @@ def readType(conference_id, conference_url, paragraph,comapnyParticipants, corpo
 
     return catParticipents
 
-with open('rawData-test.csv', 'r') as file:
-    reader = csv.reader(file)
-    for row in reader:
+# with open('rawData-test.csv', 'r') as file:
+def readMain():
+    counter = 1
+    # reader = csv.reader(file)
+    cur = db.cursor()
+    conferenceList = cur.execute('Select * FROM `conference`')
+    conferenceList = cur.fetchall()
+    for row in conferenceList:
         timeout_start = time.time()
         participants = []
         # conference_url = ("https://seekingalpha.com/article/4392903-idt-corporations-idt-ceo-shmuel-jonas-on-q1-2021-results-earnings-call-transcript")
-        conference_url = (row[-1])
+        conference_url = (row[1])
         conference_id = (row[0])
         browser.get(conference_url)
         html = browser.page_source
@@ -128,10 +141,10 @@ with open('rawData-test.csv', 'r') as file:
         innerPostparagraphs = innerSoup.find_all('p')
         
         time.sleep(2)
-        comapnyParticipants = []
-        corporateParticipants = []
-        executiveParticipants = []
-        callParticipants = []
+        comapnyParticipants = ""
+        corporateParticipants = ""
+        executiveParticipants = ""
+        callParticipants = ""
         speech = ""
         operator = ""
         QA = 0
@@ -142,19 +155,20 @@ with open('rawData-test.csv', 'r') as file:
                 QA = 1
             # if 'Presentation' in paragraph.getText():
             #     Presentation = 1
+
             # Run the readType base on the title 
             # Then we can seperate Company participents and Corporate participenta ans Call participetns and Executives
             if paragraph.getText() == 'Company Participants' or paragraph.getText() == 'Company Participants ':
-                comapnyParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants)
+                comapnyParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants, timeout_start)
                 
             elif paragraph.getText() == 'Corporate Participants':
-                corporateParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants)
+                corporateParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants, timeout_start)
 
             elif paragraph.string == 'Executives':
-                executiveParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants)
+                executiveParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants, timeout_start)
 
             elif paragraph.string == 'Conference Call Participants':
-                callParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants)
+                callParticipants = readType(conference_id,conference_url, paragraph, comapnyParticipants , corporateParticipants, timeout_start)
                 if paragraph.find_next_sibling('p').getText() == 'Operator':
                     callParticipants = []
 
@@ -165,17 +179,24 @@ with open('rawData-test.csv', 'r') as file:
     
         print(conference_url, comapnyParticipants)
 
-        participant_line=[conference_id,conference_url,comapnyParticipants, corporateParticipants, executiveParticipants, \
-            callParticipants, operator, QA, Presentation]
+        # participant_line=[conference_id,conference_url,comapnyParticipants, corporateParticipants, executiveParticipants, \
+        #     callParticipants, operator, QA, Presentation]
         
 
-        with open('rawData-result-Test.csv','a', newline='') as f:
-            try:
-                writer=csv.writer(f)
-                writer.writerow(participant_line)
-            except UnicodeEncodeError:
-                num_uncoded +=1
-        time.sleep(2)
+        # with open('rawData-result-Test.csv','a', newline='') as f:
+        #     try:
+        #         writer=csv.writer(f)
+        #         writer.writerow(participant_line)
+        #     except UnicodeEncodeError:
+        #         num_uncoded +=1
+        # time.sleep(2)
+        cur = db.cursor()
+        sql = 'INSERT INTO rawInnerData2 (conference_id, conference_url, companyParticipants, corporateParticipants, \
+                                    executiveParticipants,callParticipants, operator, is_QA, is_presentation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+
+        val = ((conference_id,conference_url, str(comapnyParticipants), str(corporateParticipants), str(executiveParticipants), str(callParticipants), str(operator), QA, Presentation))
+        cur.execute(sql,val)
+        db.commit();
         
         #if captcha stop the crawler it returns null for comapnyParticipants and corporateParticipants
         #we stop the code if it happens more than 5 times
@@ -193,3 +214,12 @@ with open('rawData-test.csv', 'r') as file:
                     num_uncoded +=1
             break
         # break
+
+with open('/home/shiva/myCodes/finalDM/MSA8040/config.json') as json_data_file:
+    config = json.load(json_data_file)
+    db = MySQLdb.connect(host=config['mysql']['host'],
+                          user=config['mysql']['user'],
+                          passwd=config['mysql']['passwd'],
+                          db=config['mysql']['db'])
+
+readMain()

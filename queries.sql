@@ -1,18 +1,42 @@
 -- Test Queries
--- a. How many conference calls in your database occurred in 2020? Answer: 9228
 
-SELECT count(*) FROM `conference` WHERE conference_date like '2020%'
+use cecs
+-- Vida
+SELECT count(*) as Total_CC_2020 FROM `conference` WHERE year(conference_date) = 2020;
 
--- b. Print their ticker name and date
+SELECT co.company_ticker, conference_date FROM conference INNER JOIN  company as co USING(company_id)  WHERE year(conference_date) = 2020;
 
-SELECT conference_date, Co.company_ticker FROM `conference` INNER JOIN  company as Co USING(company_id)  WHERE conference_date like '2020%'
+-- c - how many:
+select co.company_ticker, conference_date, count(participant_id) as Total_Participant 
+from  company co inner join conference cc using(company_id)
+inner join speech using(conference_id)
+inner join  participant using(participant_id)
+where company_ticker = 'MNR' and conference_date = '2020-11-24'
+group by  co.company_ticker, conference_date;
 
--- c. Among those participants, how many are company participants and how many are conference call participants? 
+-- c - who are them
+select pa_name,
+case when pa_organization is null then co.company_name else pa_organization end as 'Company_Organization',
+case when pa_organization is null then pa_title_type else pa_conferer_type end as 'Title_Type'
+from  company co inner join conference cc using(company_id)
+inner join speech using(conference_id)
+inner join  participant using(participant_id)
+where company_ticker = 'MNR' and conference_date = '2020-11-24';
 
-SELECT pa_conferer_type, COUNT(*) FROM participant GROUP BY pa_conferer_type
+-- c - how many company_participants / conference_call_participant
+select 
+case when pa_organization is null then count(participant_id) end as 'company_participants',
+case when pa_organization is not null then count(participant_id)  end as 'conference_call_participant'
+from  company co inner join conference cc using(company_id)
+inner join speech using(conference_id)
+inner join  participant using(participant_id)
+where company_ticker = 'MNR' and conference_date = '2020-11-24'
+group by  co.company_ticker, conference_date;
 
--- Can you print his/her speech, given the name of this participants, along with the ticker name and date
-
-SELECT pa_name, textual_info FROM speech INNER JOIN `participant` using(participant_id ) 
-WHERE pa_name = 'Kevin Miller' AND conference_id IN (SELECT conference_id FROM conference 
-where company_id = (SELECT company_id FROM company where company_ticker = 'MNR') AND conference_date = '2020-11-24')
+-- c - printh his/her speech
+select textual_info 
+from  company co inner join conference cc using(company_id)
+inner join speech using(conference_id)
+inner join participant using(participant_id)
+where pa_name = 'Kevin Miller' and company_ticker = 'MNR' and conference_date = '2020-11-24'
+order by speech_id;

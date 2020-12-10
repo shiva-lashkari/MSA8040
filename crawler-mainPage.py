@@ -83,7 +83,7 @@ def readMain(url):
         soup = BeautifulSoup(page.text, 'html.parser')
         posts = soup.find_all('li', attrs = attrs)
 
-with open('/var/www/MSA/config.json') as json_data_file:
+with open('/home/shiva/myCodes/finalDM/MSA8040/config.json') as json_data_file:
     config = json.load(json_data_file)
     db = MySQLdb.connect(host=config['mysql']['host'],
                           user=config['mysql']['user'],
