@@ -54,18 +54,6 @@ pa_conferer_type varchar(50) character set latin1
 /* pa_conferer_type is one of these four: "Conference Call Participant", "Company Participant", "Executive", "Corporate Participate"  */
 
 -- -----------------------------------------------------
--- Create Table CECS.conference_participant
--- -----------------------------------------------------
-create table conference_participant (
-conference_id  int not null,
-participant_id  int not null,
-constraint PK_CCP primary key (conference_id, participant_id),
-constraint FK_CCP_PA foreign key (participant_id) references participant(participant_id),
-constraint FK_CCP_CON foreign key (conference_id) references conference(conference_id)
-);
-
-
--- -----------------------------------------------------
 -- Create Table CECS.speech
 -- -----------------------------------------------------
 create table speech (
