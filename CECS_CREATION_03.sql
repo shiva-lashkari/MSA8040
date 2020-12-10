@@ -22,7 +22,7 @@ drop table if exists speech;
 create table company (
 company_id int not null auto_increment primary key,
 company_ticker char(10) not null unique,
-company_name varchar(255) character set latin1 not null
+company_name varchar(255) not null
 );
 
 -- -----------------------------------------------------
@@ -31,7 +31,8 @@ company_name varchar(255) character set latin1 not null
 create table conference (
 conference_id    int not null unique primary key,
 company_id  int not null,
-conference_title  varchar(255) character set latin1 not null,
+conference_title  varchar(255) not null,
+conference_url  varchar(255),
 conference_date date not null,
 conference_time  timestamp not null default current_timestamp on update current_timestamp,
 is_presentation bool not null default 1,
