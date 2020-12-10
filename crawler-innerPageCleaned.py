@@ -15,7 +15,7 @@ headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KH
 
 
 timeout = 20
-failedURLs = []
+
 
 #This function compare paragraph text with the name of the participents to find their speech
 def searchResult(catParticipentTag, catParticipents, comapnyParticipants, corporateParticipants):
@@ -104,8 +104,10 @@ def readType(conference_id, conference_url, paragraph,comapnyParticipants, corpo
             #     num_uncoded +=1
 
             cur = db.cursor()
+            cur.execute("TRUNCATE TABLE `rawSpeechData2`")
+            db.commit();
+            cur = db.cursor()
             sql = 'INSERT INTO rawSpeechData2 (conference_id, conference_url, pa_name, textual_info) VALUES (%s, %s, %s, %s)'
-
             val = ((conference_id, conference_url, speechPerson, speech))
             cur.execute(sql,val)
             db.commit();
@@ -124,7 +126,11 @@ def readType(conference_id, conference_url, paragraph,comapnyParticipants, corpo
 # with open('rawData-test.csv', 'r') as file:
 def readMain():
     counter = 1
+    failedURLs = []
     # reader = csv.reader(file)
+    cur = db.cursor()
+    cur.execute("TRUNCATE TABLE `rawInnerData2`")
+    db.commit();
     cur = db.cursor()
     conferenceList = cur.execute('Select * FROM `conference`')
     conferenceList = cur.fetchall()
@@ -178,6 +184,7 @@ def readMain():
                     
     
         print(conference_url, comapnyParticipants)
+#Writing code to csv
 
         # participant_line=[conference_id,conference_url,comapnyParticipants, corporateParticipants, executiveParticipants, \
         #     callParticipants, operator, QA, Presentation]
@@ -189,8 +196,8 @@ def readMain():
         #         writer.writerow(participant_line)
         #     except UnicodeEncodeError:
         #         num_uncoded +=1
-        # time.sleep(2)
-        cur = db.cursor()
+
+        time.sleep(2)
         sql = 'INSERT INTO rawInnerData2 (conference_id, conference_url, companyParticipants, corporateParticipants, \
                                     executiveParticipants,callParticipants, operator, is_QA, is_presentation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
 
