@@ -14,7 +14,7 @@ browser = webdriver.Chrome(executable_path = '/home/shiva/myCodes/finalDM/chrome
 headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
 
 
-timeout = 20
+timeout = 50
 
 
 #This function compare paragraph text with the name of the participents to find their speech
@@ -103,9 +103,7 @@ def readType(conference_id, conference_url, paragraph,comapnyParticipants, corpo
             # except UnicodeEncodeError:
             #     num_uncoded +=1
 
-            cur = db.cursor()
-            cur.execute("TRUNCATE TABLE `rawSpeechData2`")
-            db.commit();
+            
             cur = db.cursor()
             sql = 'INSERT INTO rawSpeechData2 (conference_id, conference_url, pa_name, textual_info) VALUES (%s, %s, %s, %s)'
             val = ((conference_id, conference_url, speechPerson, speech))
@@ -130,15 +128,16 @@ def readMain():
     # reader = csv.reader(file)
     cur = db.cursor()
     cur.execute("TRUNCATE TABLE `rawInnerData2`")
+    cur.execute("TRUNCATE TABLE `rawSpeechData2`")
     db.commit();
-    cur = db.cursor()
-    conferenceList = cur.execute('Select * FROM `conference`')
+
+    #dataTest is the sample table that I bult with those 10 urls provided for presentation
+    conferenceList = cur.execute('Select * FROM `dataTest`')
     conferenceList = cur.fetchall()
     for row in conferenceList:
         timeout_start = time.time()
         participants = []
-        # conference_url = ("https://seekingalpha.com/article/4392903-idt-corporations-idt-ceo-shmuel-jonas-on-q1-2021-results-earnings-call-transcript")
-        conference_url = (row[1])
+        conference_url = (row[-1])
         conference_id = (row[0])
         browser.get(conference_url)
         html = browser.page_source
