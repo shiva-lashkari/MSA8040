@@ -61,7 +61,7 @@ def readMain(url):
 
 
             cur = db.cursor()
-            sql = 'INSERT INTO rawMainData2 (conference_Title, conference_date, company_ticker, company_name, \
+            sql = 'INSERT INTO rawMainData (conference_Title, conference_date, company_ticker, company_name, \
                                         conference_type,conference_url) VALUES (%s, %s, %s, %s, %s, %s)'
             val = ((title,date, group,coTitle,postDesc,postUrl))
             cur.execute(sql,val)

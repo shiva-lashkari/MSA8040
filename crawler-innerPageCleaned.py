@@ -105,7 +105,7 @@ def readType(conference_id, conference_url, paragraph,comapnyParticipants, corpo
 
             
             cur = db.cursor()
-            sql = 'INSERT INTO rawSpeechData2 (conference_id, conference_url, pa_name, textual_info) VALUES (%s, %s, %s, %s)'
+            sql = 'INSERT INTO rawSpeechData (conference_id, conference_url, pa_name, textual_info) VALUES (%s, %s, %s, %s)'
             val = ((conference_id, conference_url, speechPerson, speech))
             cur.execute(sql,val)
             db.commit();
@@ -127,12 +127,12 @@ def readMain():
     failedURLs = []
     # reader = csv.reader(file)
     cur = db.cursor()
-    cur.execute("TRUNCATE TABLE `rawInnerData2`")
-    cur.execute("TRUNCATE TABLE `rawSpeechData2`")
+    cur.execute("TRUNCATE TABLE `rawInnerData`")
+    cur.execute("TRUNCATE TABLE `rawSpeechData`")
     db.commit();
 
     #dataTest is the sample table that I bult with those 10 urls provided for presentation
-    conferenceList = cur.execute('Select * FROM `dataTest`')
+    conferenceList = cur.execute('Select * FROM `rawMainData`')
     conferenceList = cur.fetchall()
     for row in conferenceList:
         timeout_start = time.time()
@@ -152,15 +152,7 @@ def readMain():
         callParticipants = ""
         speech = ""
         operator = ""
-        QA = 0
-        Presentation = 0
         for paragraph in innerPostparagraphs:
-            #Change QA boolean to True if page contain 'Question-and-Answer Session'
-            if 'Question-and-Answer Session' in paragraph.getText():
-                QA = 1
-            # if 'Presentation' in paragraph.getText():
-            #     Presentation = 1
-
             # Run the readType base on the title 
             # Then we can seperate Company participents and Corporate participenta ans Call participetns and Executives
             if paragraph.getText() == 'Company Participants' or paragraph.getText() == 'Company Participants ':
@@ -186,7 +178,7 @@ def readMain():
 #Writing code to csv
 
         # participant_line=[conference_id,conference_url,comapnyParticipants, corporateParticipants, executiveParticipants, \
-        #     callParticipants, operator, QA, Presentation]
+        #     callParticipants, operator]
         
 
         # with open('rawData-result-Test.csv','a', newline='') as f:
@@ -197,10 +189,10 @@ def readMain():
         #         num_uncoded +=1
 
         time.sleep(2)
-        sql = 'INSERT INTO rawInnerData2 (conference_id, conference_url, companyParticipants, corporateParticipants, \
-                                    executiveParticipants,callParticipants, operator, is_QA, is_presentation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        sql = 'INSERT INTO rawInnerData (conference_id, conference_url, companyParticipants, corporateParticipants, \
+                                    executiveParticipants,callParticipants, operator) VALUES (%s, %s, %s, %s, %s, %s, %s)'
 
-        val = ((conference_id,conference_url, str(comapnyParticipants), str(corporateParticipants), str(executiveParticipants), str(callParticipants), str(operator), QA, Presentation))
+        val = ((conference_id,conference_url, str(comapnyParticipants), str(corporateParticipants), str(executiveParticipants), str(callParticipants), str(operator)))
         cur.execute(sql,val)
         db.commit();
         
@@ -221,6 +213,7 @@ def readMain():
             break
         # break
 
+# The path of json file
 with open('/home/shiva/myCodes/finalDM/MSA8040/config.json') as json_data_file:
     config = json.load(json_data_file)
     db = MySQLdb.connect(host=config['mysql']['host'],
@@ -229,3 +222,12 @@ with open('/home/shiva/myCodes/finalDM/MSA8040/config.json') as json_data_file:
                           db=config['mysql']['db'])
 
 readMain()
+
+Select 
+case when pa_organization="NULL" then count(participant_id) end as 'company_participants',
+case when pa_organization!="NULL" then count(participant_id)  end as 'conference_call_participant'
+FROM (select participant_id, pa_organization
+from  company co inner join conference cc using(company_id)
+inner join speech using(conference_id)
+inner join  participant using(participant_id)
+where company_ticker = 'MNR' and conference_date = '2020-11-24') As myTable
